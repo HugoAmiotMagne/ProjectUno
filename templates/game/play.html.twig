@@ -1,0 +1,318 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MyUno — Partie{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        font-family: sans-serif;
+        color: #fff;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: #0d1b2a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .info-bar {
+        width: 100%;
+        padding: 0.6rem 1.5rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-sizing: border-box;
+    }
+    .active-turn { color: #f1c40f; font-weight: bold; }
+    .pending-draw-alert {
+        display: inline-block; color: #fff; background: #c0392b;
+        padding: 3px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85rem;
+    }
+
+    .game-table {
+        flex: 1;
+        width: 100%;
+        max-width: 900px;
+        display: grid;
+        grid-template-columns: 180px 1fr 180px;
+        grid-template-rows: auto 1fr auto;
+        grid-template-areas:
+            ".      top    ."
+            "left   center right"
+            ".      bottom .";
+        gap: 12px;
+        padding: 16px;
+        box-sizing: border-box;
+        align-items: center;
+        justify-items: center;
+    }
+
+    .opponent-top   { grid-area: top; }
+    .opponent-left  { grid-area: left; }
+    .opponent-right { grid-area: right; }
+
+    .opponent-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 12px 18px;
+        min-width: 110px;
+        transition: box-shadow 0.3s;
+    }
+    .opponent-box.active-player {
+        border-color: #f1c40f;
+        box-shadow: 0 0 14px rgba(241,196,15,0.55);
+    }
+    .opponent-box .opp-name {
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #aaa;
+    }
+    .opponent-box.active-player .opp-name { color: #f1c40f; }
+
+    .card-back {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 56px; height: 84px;
+        border-radius: 8px;
+        border: 3px solid rgba(255,255,255,0.3);
+        background: linear-gradient(135deg, #6c3483 0%, #4a235a 100%);
+        font-weight: bold; color: #fff;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    }
+    .card-back .back-count { font-size: 1.7rem; line-height: 1; }
+    .card-back .back-label { font-size: 0.45rem; letter-spacing: 1px; opacity: 0.7; margin-top: 2px; }
+
+    .center {
+        grid-area: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        width: 260px;
+        height: 260px;
+    }
+    .center-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .center-slot .slot-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .card {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px; height: 90px;
+        border-radius: 8px;
+        border: 3px solid rgba(255,255,255,0.7);
+        font-weight: bold; font-size: 1.2rem;
+        color: #fff; cursor: pointer;
+        text-decoration: none; margin: 3px;
+        box-shadow: 2px 3px 8px rgba(0,0,0,0.5);
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card.red    { background: #c0392b; }
+    .card.blue   { background: #2471a3; }
+    .card.green  { background: #1e8449; }
+    .card.yellow { background: #d4ac0d; color: #000; }
+    .card.deck   { background: linear-gradient(135deg, #6c3483, #4a235a); cursor: pointer; }
+    .card.playable {
+        border-color: #f1c40f;
+        box-shadow: 0 0 12px rgba(241,196,15,0.8);
+        cursor: pointer;
+    }
+    .card.playable:hover { transform: translateY(-6px); box-shadow: 0 6px 18px rgba(241,196,15,0.9); }
+    .card.not-playable { opacity: 0.4; cursor: default; }
+    .card.deck:hover { transform: translateY(-4px); }
+
+    .player-area {
+        grid-area: bottom;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        padding: 14px 20px;
+        box-sizing: border-box;
+    }
+    .player-area.active-player {
+        border-color: #f1c40f;
+        box-shadow: 0 0 14px rgba(241,196,15,0.4);
+    }
+    .player-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #aaa;
+        font-weight: bold;
+    }
+    .player-area.active-player .player-label { color: #f1c40f; }
+    .player-hand {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+</style>
+
+{% if pendingDraw > 0 %}
+<div class="info-bar">
+    <span class="pending-draw-alert">+{{ pendingDraw }} cartes en attente</span>
+</div>
+{% endif %}
+
+<div class="game-table">
+
+    {% if bots[1] is defined %}
+        {% set bot2 = bots[1] %}
+    {% else %}
+        {% set bot2 = null %}
+    {% endif %}
+    <div class="opponent-top">
+        <div class="opponent-box {% if bot2 is not null and game.currentPlayer.id == bot2.id %}active-player{% endif %}">
+            <span class="opp-name">
+                {% if bot2 is not null %}
+                    {{ bot2.name }}
+                {% else %}
+                    Bot 2
+                {% endif %}
+            </span>
+            <div class="card-back">
+                <span class="back-count">
+                    {% if bot2 is not null %}
+                        {{ bot2.cards.count }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </span>
+                <span class="back-label">cartes</span>
+            </div>
+        </div>
+    </div>
+
+    {% if bots[0] is defined %}
+        {% set bot1 = bots[0] %}
+    {% else %}
+        {% set bot1 = null %}
+    {% endif %}
+    <div class="opponent-left">
+        <div class="opponent-box {% if bot1 is not null and game.currentPlayer.id == bot1.id %}active-player{% endif %}">
+            <span class="opp-name">
+                {% if bot1 is not null %}
+                    {{ bot1.name }}
+                {% else %}
+                    Bot 1
+                {% endif %}
+            </span>
+            <div class="card-back">
+                <span class="back-count">
+                    {% if bot1 is not null %}
+                        {{ bot1.cards.count }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </span>
+                <span class="back-label">cartes</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="center">
+        <div class="center-slot">
+            {% if isPlayerTurn %}
+                <a href="{{ path('app_player') }}" class="card deck" title="Piocher">UNO</a>
+            {% else %}
+                <div class="card deck" style="cursor:default;">UNO</div>
+            {% endif %}
+            <span class="slot-label">Pioche</span>
+        </div>
+        <div class="center-slot">
+            {% if topCard %}
+                <div class="card {{ topCard.color }}">{{ topCard.value }}</div>
+            {% endif %}
+            <span class="slot-label">Pile</span>
+        </div>
+    </div>
+
+    {% if bots[2] is defined %}
+        {% set bot3 = bots[2] %}
+    {% else %}
+        {% set bot3 = null %}
+    {% endif %}
+    <div class="opponent-right">
+        <div class="opponent-box {% if bot3 is not null and game.currentPlayer.id == bot3.id %}active-player{% endif %}">
+            <span class="opp-name">
+                {% if bot3 is not null %}
+                    {{ bot3.name }}
+                {% else %}
+                    Bot 3
+                {% endif %}
+            </span>
+            <div class="card-back">
+                <span class="back-count">
+                    {% if bot3 is not null %}
+                        {{ bot3.cards.count }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </span>
+                <span class="back-label">cartes</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="player-area {% if isPlayerTurn %}active-player{% endif %}">
+        <span class="player-label">
+            {% if human is not null %}
+                {{ human.name }}
+            {% else %}
+                Joueur
+            {% endif %}
+            {% if isPlayerTurn %} — À votre tour{% endif %}
+        </span>
+        <div class="player-hand">
+            {% if human is not null %}
+                {% for card in human.cards %}
+                    {% if isPlayerTurn and card.id in playableIds %}
+                        <a href="{{ path('app_player', {id: card.id}) }}" class="card {{ card.color }} playable">
+                            {{ card.value }}
+                        </a>
+                    {% else %}
+                        <div class="card {{ card.color }} not-playable">{{ card.value }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% if not isPlayerTurn and game.status == 'playing' %}
+<script>
+    setTimeout(function() {
+        window.location.href = "{{ path('app_ennemy', {id: game.currentPlayer.id}) }}";
+    }, 3000);
+</script>
+{% endif %}
+
+{% endblock %}

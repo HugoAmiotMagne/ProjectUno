@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MyUno — Résultat{% endblock %}
+
+{% block body %}
+<style>
+    body {
+        font-family: sans-serif;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .result-box {
+        text-align: center;
+        padding: 3rem 4rem;
+        background: #162b3e;
+        border-radius: 16px;
+    }
+    .result-box h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .result-box p {
+        font-size: 1.2rem;
+        color: #aaa;
+        margin-bottom: 2rem;
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background: #e94560;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: bold;
+    }
+    .btn:hover { background: #e94560; }
+</style>
+
+<div class="result-box">
+    {% if humanWon %}
+        <h1>Vous avez gagné !</h1>
+    {% else %}
+        <h1>Vous avez perdu !</h1>
+    {% endif %}
+
+    <a href="{{ path('app_home') }}" class="btn">Retour à l'accueil</a>
+</div>
+{% endblock %}

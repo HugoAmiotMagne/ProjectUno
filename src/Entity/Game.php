@@ -24,6 +24,9 @@ class Game
     #[ORM\Column]
     private string $status = 'playing';
 
+    #[ORM\Column]
+    private int $pendingDraw = 0;
+
     #[ORM\ManyToOne(targetEntity: Card::class)]
     private ?Card $topCard = null;
 
@@ -70,6 +73,17 @@ class Game
     public function setStatus(string $status): static
     {
         $this->status = $status;
+        return $this;
+    }
+
+    public function getPendingDraw(): int
+    {
+        return $this->pendingDraw;
+    }
+
+    public function setPendingDraw(int $pendingDraw): static
+    {
+        $this->pendingDraw = $pendingDraw;
         return $this;
     }
 

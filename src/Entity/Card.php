@@ -19,7 +19,6 @@ class Card
     #[ORM\Column]
     private ?string $value = null;
 
-    // 'deck' = dans la pioche, 'hand' = dans la main d'un joueur, 'discard' = sur la pile
     #[ORM\Column]
     private string $location = 'deck';
 

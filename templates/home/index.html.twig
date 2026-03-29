@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}MyUno — Accueil{% endblock %}
+
+{% block body %}
+<style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    h1 {
+        font-size: 4rem;
+        margin-bottom: 0.5rem;
+        color: #e94560;
+    }
+
+    h2 {
+        margin-top: 0;
+        color: #e94560;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        color: #FFFFFF;
+        margin-bottom: 2rem;
+    }
+
+    .card-box {
+        background: #162b3e;
+        border-radius: 12px;
+        padding: 2rem 3rem;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    .card-box h2 {
+        margin-top: 0;
+    }
+
+    .card-box ul {
+        text-align: left;
+        line-height: 2;
+        color: #FFFFFF;
+    }
+
+    .btn-start {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 1rem 3rem;
+        background: #e94560;
+        color: #fff;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 1.3rem;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container">
+    <div class="card-box">
+        <h1>MyUno</h1>
+        <p class="subtitle">Affronte 3 ordinateurs dans une partie de UNO en ligne !</p>
+
+        <h2>Comment jouer ?</h2>
+        <ul>
+            <li>Place une carte de la même <strong>couleur</strong> ou <strong>valeur</strong> que celle du dessus</li>
+            <li> X = le joueur suivant passe son tour</li>
+            <li> S = le sens de jeu s'inverse</li>
+            <li> +2 = le joueur suivant pioche 2 cartes (cumulable)</li>
+            <li>Si tu ne peux pas jouer, tu pioches une carte</li>
+        </ul>
+        <h2>Plus de carte et tu gagnes !</h2>
+
+        <a href="{{ path('app_start') }}" class="btn-start">Nouvelle partie</a>
+    </div>
+
+</div>
+{% endblock %}
